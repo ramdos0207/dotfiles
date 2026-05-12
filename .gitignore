@@ -1,0 +1,5 @@
+.zsh_history
+.zcompdump*
+.zsh_sessions/
+.cache/
+.dotfiles-backup/
