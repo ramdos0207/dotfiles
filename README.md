@@ -1,34 +1,46 @@
 # dotfiles
 
-Zsh setup for my WSL/Linux environment. The configuration mirrors the current
-local shell: Oh My Zsh, Powerlevel10k, Go/Rust/Node/Bun/Homebrew paths, and a
-small set of productivity plugins.
+- とりあえずzsh周りだけを管理する
+- エディタの設定はVSCodeの同期を使う
 
-## What It Installs
+## やること
 
-- `~/.zshrc`
-- `~/.zshenv`
-- `~/.p10k.zsh`
-- Oh My Zsh, if it is missing
-- Powerlevel10k and the custom zsh plugins used by `.zshrc`
+1. git、zshをインストールする
 
-## Usage
+```sh
+sudo apt install -y zsh git
+```
+
+2. ssh鍵を作成し、githubに登録する（必要な場合）
+   ※このリポジトリはパブリックリポジトリなので、スキップすることも可能
+
+```sh
+ssh-keygen -t ed25519 -C ramdos0207
+cat ~/.ssh/id_ed25519.pub
+```
+
+3. このリポジトリをクローンする
+
+```sh
+git clone https://github.com/ramdos0207/dotfiles.git
+# ssh経由の場合
+# git clone git@github.com:ramdos0207/dotfiles.git
+```
+
+4. インストールスクリプトを実行し、zshを再起動する
 
 ```sh
 ./install.sh
-```
-
-The installer backs up existing files with a timestamp before creating symlinks
-to this repository.
-
-After installation, restart zsh:
-
-```sh
 exec zsh
 ```
 
-## Notes
+## そのほかやっておくこと
 
-- A Nerd Font is recommended for the Powerlevel10k prompt.
-- Optional tools such as `go`, `cargo`, `nvm`, `brew`, and `bun` are loaded only
-  when their files or directories exist.
+1. Moralerspace（などのNerd Fonts対応フォント）をインストールする
+  - https://github.com/yuru7/moralerspace/releases
+
+
+## todo
+- シェルをもっとクールにする
+- .gitconfig類をリポジトリに入れる
+- mise類をリポジトリに入れる
