@@ -5,10 +5,10 @@
 
 ## やること
 
-1. git、zshをインストールする
+1. git、zsh、curlをインストールする
 
 ```sh
-sudo apt install -y zsh git
+sudo apt install -y zsh git curl
 ```
 
 2. ssh鍵を作成し、githubに登録する（必要な場合）
@@ -28,7 +28,6 @@ git clone https://github.com/ramdos0207/dotfiles.git
 ```
 
 4. インストールスクリプトを実行し、zshを再起動する
-
 ```sh
 ./install.sh
 exec zsh
@@ -43,4 +42,3 @@ exec zsh
 ## todo
 - シェルをもっとクールにする
 - .gitconfig類をリポジトリに入れる
-- mise類をリポジトリに入れる

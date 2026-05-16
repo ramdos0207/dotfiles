@@ -12,6 +12,24 @@ need_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+install_mise() {
+  export PATH="$HOME/.local/bin:$PATH"
+
+  if need_cmd mise; then
+    info "mise is already installed"
+    return
+  fi
+
+  if ! need_cmd curl; then
+    printf 'curl is required to install mise.\n' >&2
+    exit 1
+  fi
+
+  info "Installing mise"
+  curl https://mise.run | sh
+  export PATH="$HOME/.local/bin:$PATH"
+}
+
 clone_or_update() {
   local repo="$1"
   local dest="$2"
@@ -43,6 +61,7 @@ link_file() {
   fi
 
   info "Linking ${target#$HOME/}"
+  mkdir -p "$(dirname "$target")"
   ln -s "$source" "$target"
 }
 
@@ -55,6 +74,8 @@ if ! need_cmd zsh; then
   printf 'zsh is required. Install zsh with your system package manager first.\n' >&2
   exit 1
 fi
+
+install_mise
 
 clone_or_update "https://github.com/ohmyzsh/ohmyzsh.git" "$HOME/.oh-my-zsh"
 
@@ -69,5 +90,9 @@ clone_or_update "https://github.com/zsh-users/zsh-completions.git" "$ZSH_CUSTOM/
 link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
 link_file "$DOTFILES_DIR/.zshenv" "$HOME/.zshenv"
 link_file "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
+link_file "$DOTFILES_DIR/.config/mise/config.toml" "$HOME/.config/mise/config.toml"
+
+info "Installing mise tools"
+mise install
 
 info "Done. Restart your shell with: exec zsh"
