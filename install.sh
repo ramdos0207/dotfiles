@@ -77,6 +77,29 @@ print_gpg_public_key() {
   gpg --armor --export "$signing_key"
 }
 
+gpg_fingerprint_for_key() {
+  local signing_key="$1"
+
+  gpg --batch --with-colons --fingerprint "$signing_key" 2>/dev/null | awk -F: '$1 == "fpr" { print toupper($10); exit }'
+}
+
+github_has_gpg_key() {
+  local signing_key="$1"
+  local fingerprint
+  local key_id
+  local registered_key_ids
+
+  fingerprint="$(gpg_fingerprint_for_key "$signing_key")"
+  if [[ -z "$fingerprint" ]]; then
+    return 1
+  fi
+
+  key_id="${fingerprint: -16}"
+  registered_key_ids="$(gh api user/gpg_keys --jq '.[].key_id' 2>/dev/null | tr '[:lower:]' '[:upper:]' || true)"
+
+  printf '%s\n' "$registered_key_ids" | awk -v key_id="$key_id" '$0 == key_id { found = 1 } END { exit !found }'
+}
+
 register_gpg_key_with_github() {
   local signing_key="$1"
   local public_key_file
@@ -96,6 +119,11 @@ register_gpg_key_with_github() {
   if ! gh auth status >/dev/null 2>&1; then
     info "Logging in to GitHub with gh"
     gh auth login
+  fi
+
+  if github_has_gpg_key "$signing_key"; then
+    info "GPG public key is already registered on GitHub"
+    return
   fi
 
   public_key_file="$(mktemp)"
