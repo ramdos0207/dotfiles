@@ -140,6 +140,34 @@ register_gpg_key_with_github() {
   rm -f "$public_key_file"
 }
 
+set_default_shell_zsh() {
+  local zsh_path
+  local current_shell
+
+  zsh_path="$(command -v zsh)"
+  current_shell="$(getent passwd "$USER" 2>/dev/null | cut -d: -f7 || true)"
+  if [[ -z "$current_shell" && -r /etc/passwd ]]; then
+    current_shell="$(awk -F: -v user="$USER" '$1 == user { print $7; exit }' /etc/passwd)"
+  fi
+
+  if [[ "$current_shell" == "$zsh_path" ]]; then
+    info "Default shell is already zsh"
+    return
+  fi
+
+  if [[ -f /etc/shells ]] && ! grep -qxF "$zsh_path" /etc/shells; then
+    printf 'zsh (%s) is not listed in /etc/shells. Add it, then run: chsh -s %s\n' "$zsh_path" "$zsh_path" >&2
+    return 1
+  fi
+
+  info "Setting default login shell to zsh"
+  if chsh -s "$zsh_path"; then
+    info "Default login shell updated to $zsh_path"
+  else
+    info "Could not change default shell. Run manually: chsh -s $zsh_path"
+  fi
+}
+
 setup_git_gpg_key() {
   local local_config="$HOME/.gitconfig.local"
   local name="ramdos0207"
@@ -204,5 +232,7 @@ info "Installing mise tools"
 mise install
 
 setup_git_gpg_key
+
+set_default_shell_zsh
 
 info "Done. Restart your shell with: exec zsh"
