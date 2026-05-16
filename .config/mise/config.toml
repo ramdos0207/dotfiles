@@ -1,4 +1,12 @@
 [tools]
+"aqua:BurntSushi/ripgrep" = "latest"
+"aqua:ajeetdsouza/zoxide" = "latest"
+"aqua:dandavison/delta" = "latest"
+"aqua:eza-community/eza" = "latest"
+"aqua:junegunn/fzf" = "latest"
+"aqua:jesseduffield/lazygit" = "latest"
+"aqua:sharkdp/bat" = "latest"
+"aqua:sharkdp/fd" = "latest"
 bun = "latest"
 github-cli = "latest"
 go = "latest"
