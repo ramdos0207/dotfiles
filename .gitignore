@@ -3,3 +3,4 @@
 .zsh_sessions/
 .cache/
 .dotfiles-backup/
+.gitconfig.local

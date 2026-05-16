@@ -13,7 +13,7 @@ need_cmd() {
 }
 
 install_mise() {
-  export PATH="$HOME/.local/bin:$PATH"
+  export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
   if need_cmd mise; then
     info "mise is already installed"
@@ -27,7 +27,7 @@ install_mise() {
 
   info "Installing mise"
   curl https://mise.run | sh
-  export PATH="$HOME/.local/bin:$PATH"
+  export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 }
 
 clone_or_update() {
@@ -65,6 +65,80 @@ link_file() {
   ln -s "$source" "$target"
 }
 
+print_gpg_public_key() {
+  local signing_key="$1"
+
+  if ! gpg --list-secret-keys "$signing_key" >/dev/null 2>&1; then
+    info "GPG key $signing_key is configured, but no local secret key was found"
+    return
+  fi
+
+  info "Register this GPG public key on GitHub"
+  gpg --armor --export "$signing_key"
+}
+
+register_gpg_key_with_github() {
+  local signing_key="$1"
+  local public_key_file
+  local title
+
+  if ! gpg --list-secret-keys "$signing_key" >/dev/null 2>&1; then
+    info "GPG key $signing_key is configured, but no local secret key was found"
+    return
+  fi
+
+  if ! need_cmd gh; then
+    info "GitHub CLI is not available"
+    print_gpg_public_key "$signing_key"
+    return
+  fi
+
+  if ! gh auth status >/dev/null 2>&1; then
+    info "Logging in to GitHub with gh"
+    gh auth login
+  fi
+
+  public_key_file="$(mktemp)"
+  gpg --armor --export "$signing_key" >"$public_key_file"
+  title="$(hostname)-$(date +%Y%m%d)"
+
+  if gh gpg-key add "$public_key_file" --title "$title"; then
+    info "Registered GPG public key on GitHub"
+  else
+    info "Could not register GPG public key with gh. It may already be registered."
+    print_gpg_public_key "$signing_key"
+  fi
+
+  rm -f "$public_key_file"
+}
+
+setup_git_gpg_key() {
+  local local_config="$HOME/.gitconfig.local"
+  local name="ramdos0207"
+  local email="dev@ramdos.net"
+  local identity="${name} <${email}>"
+  local signing_key
+
+  signing_key="$(git config --file "$local_config" --get user.signingKey 2>/dev/null || true)"
+  if [[ -n "$signing_key" ]]; then
+    info "Git signing key is already configured"
+    register_gpg_key_with_github "$signing_key"
+    return
+  fi
+
+  signing_key="$(gpg --batch --list-secret-keys --with-colons "$email" 2>/dev/null | awk -F: '$1 == "fpr" { print $10; exit }' || true)"
+  if [[ -z "$signing_key" ]]; then
+    info "Generating GPG key for ${identity}"
+    gpg --batch --pinentry-mode loopback --passphrase '' --quick-generate-key "$identity" ed25519 sign 0
+    signing_key="$(gpg --batch --list-secret-keys --with-colons "$email" | awk -F: '$1 == "fpr" { print $10; exit }')"
+  fi
+
+  git config --file "$local_config" user.signingKey "$signing_key"
+
+  info "Configured Git signing key: $signing_key"
+  register_gpg_key_with_github "$signing_key"
+}
+
 if ! need_cmd git; then
   printf 'git is required to install zsh dependencies.\n' >&2
   exit 1
@@ -72,6 +146,11 @@ fi
 
 if ! need_cmd zsh; then
   printf 'zsh is required. Install zsh with your system package manager first.\n' >&2
+  exit 1
+fi
+
+if ! need_cmd gpg; then
+  printf 'gpg is required. Install gnupg with your system package manager first.\n' >&2
   exit 1
 fi
 
@@ -90,9 +169,12 @@ clone_or_update "https://github.com/zsh-users/zsh-completions.git" "$ZSH_CUSTOM/
 link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
 link_file "$DOTFILES_DIR/.zshenv" "$HOME/.zshenv"
 link_file "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
+link_file "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
 link_file "$DOTFILES_DIR/.config/mise/config.toml" "$HOME/.config/mise/config.toml"
 
 info "Installing mise tools"
 mise install
+
+setup_git_gpg_key
 
 info "Done. Restart your shell with: exec zsh"

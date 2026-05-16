@@ -1,14 +1,14 @@
 # dotfiles
 
-- とりあえずzsh周りだけを管理する
+- zshとgit周りの設定を管理する
 - エディタの設定はVSCodeの同期を使う
 
 ## やること
 
-1. git、zsh、curlをインストールする
+1. git、zsh、curl、gnupgをインストールする
 
 ```sh
-sudo apt install -y zsh git curl
+sudo apt install -y zsh git curl gnupg
 ```
 
 2. ssh鍵を作成し、githubに登録する（必要な場合）
@@ -33,6 +33,11 @@ git clone https://github.com/ramdos0207/dotfiles.git
 exec zsh
 ```
 
+5. GitHub CLIの認証を進める
+
+`./install.sh` の途中で `gh auth login` が起動したら、ブラウザでGitHub認証を完了する。
+GPG公開鍵は認証後に自動でGitHubへ登録される。
+
 ## そのほかやっておくこと
 
 1. Moralerspace（などのNerd Fonts対応フォント）をインストールする
@@ -41,4 +46,3 @@ exec zsh
 
 ## todo
 - シェルをもっとクールにする
-- .gitconfig類をリポジトリに入れる

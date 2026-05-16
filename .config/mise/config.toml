@@ -1,4 +1,5 @@
 [tools]
 bun = "latest"
+github-cli = "latest"
 go = "latest"
 node = "lts"

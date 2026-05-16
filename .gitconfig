@@ -1,0 +1,11 @@
+[user]
+	name = ramdos0207
+	email = dev@ramdos.net
+[include]
+	path = ~/.gitconfig.local
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+[gpg]
+	program = /bin/gpg
+[commit]
+	gpgsign = true
